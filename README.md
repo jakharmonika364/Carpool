@@ -111,6 +111,10 @@ Existing carpool platforms can match routes, but trust and safety verification i
 
 🚧 In development
 
+The Month 1 foundation (architecture, schema, auth, and scaffolding) has landed — see
+[`docs/getting-started.md`](docs/getting-started.md) for what's implemented so far and how to
+run it locally.
+
 ## Disclaimer
 
 This is an educational project. Any production deployment involving identity documents, biometrics, location data, emergency notifications, or fare collection requires legal review, privacy controls, consent mechanisms, and approved third-party providers.
