@@ -1,0 +1,33 @@
+# Environment
+.env
+.env.local
+*.env
+!.env.example
+
+# Node
+node_modules/
+npm-debug.log*
+dist/
+coverage/
+
+# Backend
+backend/dist/
+backend/coverage/
+
+# Mobile / Expo
+mobile/.expo/
+mobile/dist/
+mobile/web-build/
+mobile/*.jks
+mobile/*.p8
+mobile/*.p12
+mobile/*.key
+mobile/*.mobileprovision
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
