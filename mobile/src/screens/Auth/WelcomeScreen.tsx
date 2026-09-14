@@ -25,7 +25,7 @@ export function WelcomeScreen({ navigation }: Props) {
           </Pressable>
           <Pressable
             style={styles.secondaryButton}
-            onPress={() => navigation.navigate('Register')}
+            onPress={() => navigation.navigate('PhoneEntry')}
           >
             <Text style={styles.secondaryLabel}>Create Account</Text>
           </Pressable>
