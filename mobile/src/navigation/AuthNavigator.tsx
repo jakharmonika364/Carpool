@@ -10,7 +10,7 @@ export type AuthStackParamList = {
   Welcome: undefined;
   Login: undefined;
   PhoneEntry: undefined;
-  OtpVerification: { countryCode: string; phone: string };
+  OtpVerification: { countryCode: string; phone: string; deliveryMethod: 'sms' | 'whatsapp' };
   RoleSelection: undefined;
 };
 

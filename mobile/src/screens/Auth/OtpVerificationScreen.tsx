@@ -12,7 +12,8 @@ const CODE_LENGTH = 6;
 const RESEND_SECONDS = 30;
 
 export function OtpVerificationScreen({ navigation, route }: Props) {
-  const { countryCode, phone } = route.params;
+  const { countryCode, phone, deliveryMethod } = route.params;
+  const methodLabel = deliveryMethod === 'whatsapp' ? 'WhatsApp' : 'SMS';
 
   const [digits, setDigits] = useState<string[]>(Array(CODE_LENGTH).fill(''));
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
@@ -58,7 +59,7 @@ export function OtpVerificationScreen({ navigation, route }: Props) {
 
         <Text style={styles.title}>Verify your number</Text>
         <Text style={styles.subtitle}>
-          Enter the 6-digit code sent to{' '}
+          Enter the 6-digit code sent via {methodLabel} to{' '}
           <Text style={styles.phoneHighlight}>
             {countryCode} {phone}
           </Text>
