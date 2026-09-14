@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcryptjs';
+import bcrypt from 'bcryptjs';
 import { randomUUID } from 'crypto';
 import { UsersService } from '../users/users.service';
 import { RedisService } from '../redis/redis.service';

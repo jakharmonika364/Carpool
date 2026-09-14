@@ -5,6 +5,7 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Relation,
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from './user.entity';
@@ -19,7 +20,7 @@ export class Vehicle {
 
   @ManyToOne(() => User, (user) => user.vehicles, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'owner_id' })
-  owner: User;
+  owner: Relation<User>;
 
   @Column({ type: 'varchar' })
   make: string;

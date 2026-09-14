@@ -1,5 +1,6 @@
+import { jest } from '@jest/globals';
 import { UnauthorizedException } from '@nestjs/common';
-import * as bcrypt from 'bcryptjs';
+import bcrypt from 'bcryptjs';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { RedisService } from '../redis/redis.service';
