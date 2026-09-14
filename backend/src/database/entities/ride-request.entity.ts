@@ -5,6 +5,7 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Relation,
 } from 'typeorm';
 import { User } from './user.entity';
 import { Ride } from './ride.entity';
@@ -28,14 +29,14 @@ export class RideRequest {
 
   @ManyToOne(() => Ride, (ride) => ride.rideRequests, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'ride_id' })
-  ride: Ride;
+  ride: Relation<Ride>;
 
   @Column({ name: 'rider_id', type: 'uuid' })
   riderId: string;
 
   @ManyToOne(() => User, (user) => user.rideRequests, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'rider_id' })
-  rider: User;
+  rider: Relation<User>;
 
   @Column({
     type: 'enum',

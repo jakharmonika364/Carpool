@@ -15,8 +15,8 @@ import { RideRequest } from './entities/ride-request.entity';
         type: 'postgres',
         url: configService.get<string>('DATABASE_URL'),
         entities: [User, Vehicle, Ride, RideRequest],
-        migrations: [__dirname + '/migrations/*.{ts,js}'],
-        // Schema is owned by migrations, never by app-boot synchronization.
+        // Schema is owned by migrations (run separately via the TypeORM CLI and
+        // `AppDataSource`, see data-source.ts), never by app-boot synchronization.
         synchronize: false,
         autoLoadEntities: true,
       }),

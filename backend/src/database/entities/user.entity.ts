@@ -4,6 +4,7 @@ import {
   Entity,
   OneToMany,
   PrimaryGeneratedColumn,
+  Relation,
   UpdateDateColumn,
 } from 'typeorm';
 import { Vehicle } from './vehicle.entity';
@@ -63,11 +64,11 @@ export class User {
   updatedAt: Date;
 
   @OneToMany(() => Vehicle, (vehicle) => vehicle.owner)
-  vehicles: Vehicle[];
+  vehicles: Relation<Vehicle>[];
 
   @OneToMany(() => Ride, (ride) => ride.driver)
-  rides: Ride[];
+  rides: Relation<Ride>[];
 
   @OneToMany(() => RideRequest, (rideRequest) => rideRequest.rider)
-  rideRequests: RideRequest[];
+  rideRequests: Relation<RideRequest>[];
 }

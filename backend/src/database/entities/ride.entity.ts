@@ -6,6 +6,7 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  Relation,
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from './user.entity';
@@ -32,14 +33,14 @@ export class Ride {
 
   @ManyToOne(() => User, (user) => user.rides, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'driver_id' })
-  driver: User;
+  driver: Relation<User>;
 
   @Column({ name: 'vehicle_id', type: 'uuid', nullable: true })
   vehicleId: string | null;
 
   @ManyToOne(() => Vehicle, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'vehicle_id' })
-  vehicle: Vehicle | null;
+  vehicle: Relation<Vehicle> | null;
 
   @Column({ name: 'pickup_address', type: 'varchar' })
   pickupAddress: string;
@@ -89,5 +90,5 @@ export class Ride {
   updatedAt: Date;
 
   @OneToMany(() => RideRequest, (rideRequest) => rideRequest.ride)
-  rideRequests: RideRequest[];
+  rideRequests: Relation<RideRequest>[];
 }
