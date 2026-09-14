@@ -96,7 +96,11 @@ export function OtpVerificationScreen({ navigation, route }: Props) {
           </Pressable>
         )}
 
-        <Pressable style={[styles.verifyButton, !isValid && styles.verifyButtonDisabled]} disabled={!isValid}>
+        <Pressable
+          style={[styles.verifyButton, !isValid && styles.verifyButtonDisabled]}
+          disabled={!isValid}
+          onPress={() => navigation.navigate('RoleSelection')}
+        >
           <Text style={styles.verifyLabel}>Verify</Text>
         </Pressable>
       </View>
