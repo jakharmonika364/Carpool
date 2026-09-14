@@ -2,16 +2,21 @@ import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { BrandMark } from '../../components/BrandMark';
 import { colors } from '../../theme/colors';
+import type { AuthStackParamList } from '../../navigation/AuthNavigator';
+
+type Props = NativeStackScreenProps<AuthStackParamList, 'PhoneEntry'>;
 
 const PHONE_DIGITS_REGEX = /^\d{10}$/;
+const COUNTRY_CODE = '+91';
 
 function formatPhoneDigits(digits: string) {
   return digits.length > 5 ? `${digits.slice(0, 5)} ${digits.slice(5)}` : digits;
 }
 
-export function PhoneEntryScreen() {
+export function PhoneEntryScreen({ navigation }: Props) {
   const [phone, setPhone] = useState('');
 
   const digits = useMemo(() => phone.replace(/\D/g, ''), [phone]);
@@ -36,7 +41,7 @@ export function PhoneEntryScreen() {
 
         <View style={styles.phoneRow}>
           <Pressable style={styles.countryCode}>
-            <Text style={styles.countryCodeLabel}>+91</Text>
+            <Text style={styles.countryCodeLabel}>{COUNTRY_CODE}</Text>
             <Text style={styles.chevron}>⌄</Text>
           </Pressable>
           <View style={styles.divider} />
@@ -54,6 +59,9 @@ export function PhoneEntryScreen() {
         <Pressable
           style={[styles.continueButton, !isValid && styles.continueButtonDisabled]}
           disabled={!isValid}
+          onPress={() =>
+            navigation.navigate('OtpVerification', { countryCode: COUNTRY_CODE, phone })
+          }
         >
           <Text style={styles.continueLabel}>Continue</Text>
         </Pressable>
