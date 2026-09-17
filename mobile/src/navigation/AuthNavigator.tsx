@@ -2,12 +2,16 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { WelcomeScreen } from '../screens/Auth/WelcomeScreen';
 import { LoginScreen } from '../screens/Auth/LoginScreen';
-import { RegisterScreen } from '../screens/Auth/RegisterScreen';
+import { PhoneEntryScreen } from '../screens/Auth/PhoneEntryScreen';
+import { OtpVerificationScreen } from '../screens/Auth/OtpVerificationScreen';
+import { RoleSelectionScreen } from '../screens/Auth/RoleSelectionScreen';
 
 export type AuthStackParamList = {
   Welcome: undefined;
   Login: undefined;
-  Register: undefined;
+  PhoneEntry: undefined;
+  OtpVerification: { countryCode: string; phone: string; deliveryMethod: 'sms' | 'whatsapp' };
+  RoleSelection: undefined;
 };
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
@@ -21,11 +25,9 @@ export function AuthNavigator() {
         component={LoginScreen}
         options={{ headerShown: true, title: 'Log In' }}
       />
-      <Stack.Screen
-        name="Register"
-        component={RegisterScreen}
-        options={{ headerShown: true, title: 'Create Account' }}
-      />
+      <Stack.Screen name="PhoneEntry" component={PhoneEntryScreen} />
+      <Stack.Screen name="OtpVerification" component={OtpVerificationScreen} />
+      <Stack.Screen name="RoleSelection" component={RoleSelectionScreen} />
     </Stack.Navigator>
   );
 }
