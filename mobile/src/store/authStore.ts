@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { tokenStorage } from '../utils/tokenStorage';
-import { authService, LoginPayload, RegisterPayload, UpdateProfilePayload } from '../services/authService';
+import { authService, LoginPayload, UpdateProfilePayload } from '../services/authService';
 import { User } from '../types/user';
 
 interface AuthState {
@@ -9,7 +9,6 @@ interface AuthState {
   isSubmitting: boolean;
   error: string | null;
   hydrate: () => Promise<void>;
-  register: (payload: RegisterPayload) => Promise<void>;
   login: (payload: LoginPayload) => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (payload: UpdateProfilePayload) => Promise<void>;
@@ -33,18 +32,6 @@ export const useAuthStore = create<AuthState>((set) => ({
     } catch {
       await tokenStorage.clearToken();
       set({ user: null, isHydrating: false });
-    }
-  },
-
-  register: async (payload) => {
-    set({ isSubmitting: true, error: null });
-    try {
-      const { accessToken, user } = await authService.register(payload);
-      await tokenStorage.setToken(accessToken);
-      set({ user, isSubmitting: false });
-    } catch (error) {
-      set({ isSubmitting: false });
-      throw error;
     }
   },
 

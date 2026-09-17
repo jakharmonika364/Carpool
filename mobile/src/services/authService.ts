@@ -1,13 +1,6 @@
 import { apiClient } from './apiClient';
 import { AuthResponse, User } from '../types/user';
 
-export interface RegisterPayload {
-  fullName: string;
-  email: string;
-  phoneNumber: string;
-  password: string;
-}
-
 export interface LoginPayload {
   email: string;
   password: string;
@@ -19,11 +12,6 @@ export interface UpdateProfilePayload {
 }
 
 export const authService = {
-  async register(payload: RegisterPayload): Promise<AuthResponse> {
-    const { data } = await apiClient.post<AuthResponse>('/auth/register', payload);
-    return data;
-  },
-
   async login(payload: LoginPayload): Promise<AuthResponse> {
     const { data } = await apiClient.post<AuthResponse>('/auth/login', payload);
     return data;

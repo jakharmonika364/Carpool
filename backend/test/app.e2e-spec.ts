@@ -4,9 +4,13 @@ import {
   VersioningType,
 } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import request from 'supertest';
 import { randomUUID } from 'crypto';
+import bcrypt from 'bcryptjs';
 import { AppModule } from '../src/app.module';
+import { User } from '../src/database/entities/user.entity';
 
 describe('Auth + Users (e2e)', () => {
   let app: INestApplication;
@@ -31,55 +35,21 @@ describe('Auth + Users (e2e)', () => {
       }),
     );
     await app.init();
+
+    const usersRepository = app.get<Repository<User>>(getRepositoryToken(User));
+    const passwordHash = await bcrypt.hash(password, 4);
+    await usersRepository.save(
+      usersRepository.create({
+        fullName: 'Test Student',
+        email,
+        phoneNumber,
+        passwordHash,
+      }),
+    );
   });
 
   afterAll(async () => {
     await app.close();
-  });
-
-  it('rejects registration with an invalid email (422)', async () => {
-    const response = await request(app.getHttpServer())
-      .post('/v1/auth/register')
-      .send({
-        fullName: 'Test Student',
-        email: 'not-an-email',
-        phoneNumber,
-        password,
-      });
-
-    expect(response.status).toBe(422);
-    expect(response.body.code).toBeDefined();
-    expect(response.body.requestId).toBeDefined();
-  });
-
-  it('registers a new student', async () => {
-    const response = await request(app.getHttpServer())
-      .post('/v1/auth/register')
-      .send({
-        fullName: 'Test Student',
-        email,
-        phoneNumber,
-        password,
-      });
-
-    expect(response.status).toBe(201);
-    expect(response.body.accessToken).toBeDefined();
-    expect(response.body.user.email).toBe(email);
-    expect(response.body.user.passwordHash).toBeUndefined();
-  });
-
-  it('rejects registration with a duplicate email (409)', async () => {
-    const response = await request(app.getHttpServer())
-      .post('/v1/auth/register')
-      .send({
-        fullName: 'Duplicate Student',
-        email,
-        phoneNumber: `+9190${Math.floor(10000000 + Math.random() * 89999999)}`,
-        password,
-      });
-
-    expect(response.status).toBe(409);
-    expect(response.body.code).toBe('CONFLICT');
   });
 
   it('rejects login with an incorrect password (401)', async () => {
