@@ -8,9 +8,7 @@ import { UserRole, VerificationStatus } from '../database/entities/user.entity';
 
 describe('AuthService', () => {
   let authService: AuthService;
-  let usersService: jest.Mocked<
-    Pick<UsersService, 'createStudent' | 'findByEmail'>
-  >;
+  let usersService: jest.Mocked<Pick<UsersService, 'findByEmail'>>;
   let jwtService: { sign: jest.Mock };
   let redisService: jest.Mocked<Pick<RedisService, 'set' | 'get'>>;
 
@@ -26,7 +24,6 @@ describe('AuthService', () => {
 
   beforeEach(() => {
     usersService = {
-      createStudent: jest.fn(),
       findByEmail: jest.fn(),
     };
     jwtService = { sign: jest.fn().mockReturnValue('signed.jwt.token') };
@@ -37,32 +34,6 @@ describe('AuthService', () => {
       jwtService as any,
       redisService as unknown as RedisService,
     );
-  });
-
-  describe('register', () => {
-    it('hashes the password and returns an access token with the public user', async () => {
-      usersService.createStudent.mockResolvedValue({
-        ...baseUser,
-        passwordHash: 'hashed',
-      } as any);
-
-      const result = await authService.register({
-        fullName: 'Student Name',
-        email: 'student@university.edu',
-        phoneNumber: '+919000000000',
-        password: 'SecurePassword123!',
-      });
-
-      expect(usersService.createStudent).toHaveBeenCalledWith(
-        expect.objectContaining({
-          email: 'student@university.edu',
-          phoneNumber: '+919000000000',
-        }),
-      );
-      expect(result.accessToken).toBe('signed.jwt.token');
-      expect(result.user).not.toHaveProperty('passwordHash');
-      expect(result.user.email).toBe('student@university.edu');
-    });
   });
 
   describe('login', () => {

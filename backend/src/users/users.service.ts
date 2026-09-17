@@ -27,27 +27,6 @@ export class UsersService {
       .getOne();
   }
 
-  async createStudent(data: {
-    fullName: string;
-    email: string;
-    phoneNumber: string;
-    passwordHash: string;
-  }): Promise<User> {
-    const existing = await this.usersRepository.findOne({
-      where: [{ email: data.email }, { phoneNumber: data.phoneNumber }],
-    });
-    if (existing) {
-      throw new ConflictException(
-        existing.email === data.email
-          ? 'An account with this email already exists.'
-          : 'An account with this phone number already exists.',
-      );
-    }
-
-    const user = this.usersRepository.create(data);
-    return this.usersRepository.save(user);
-  }
-
   async updateProfile(id: string, dto: UpdateUserDto): Promise<User> {
     const user = await this.findById(id);
     if (!user) {
