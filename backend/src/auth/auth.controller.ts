@@ -44,8 +44,11 @@ export class AuthController {
 
   @Post('otp/request')
   @HttpCode(HttpStatus.OK)
-  @ApiOkResponse({ description: 'Dev-mode: logs the request, sends nothing.' })
-  requestOtp(@Body() dto: RequestOtpDto): Promise<{ devMode: true }> {
+  @ApiOkResponse({
+    description:
+      'Sends an SMS code. devMode is true when no OTP provider is configured: nothing is sent and any 6-digit code is accepted.',
+  })
+  requestOtp(@Body() dto: RequestOtpDto): Promise<{ devMode: boolean }> {
     return this.authService.requestOtp(dto);
   }
 

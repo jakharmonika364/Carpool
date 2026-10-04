@@ -54,6 +54,15 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     return this.client.get(key);
   }
 
+  // Atomic counter whose window starts at the first increment.
+  async incrementWithExpiry(key: string, ttlSeconds: number): Promise<number> {
+    const count = await this.client.incr(key);
+    if (count === 1) {
+      await this.client.expire(key, ttlSeconds);
+    }
+    return count;
+  }
+
   async del(key: string): Promise<void> {
     await this.client.del(key);
   }

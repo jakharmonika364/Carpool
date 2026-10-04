@@ -7,6 +7,8 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { UsersModule } from '../users/users.module';
+import { OTP_PROVIDER } from './otp/otp-provider';
+import { Msg91OtpProvider } from './otp/msg91-otp.provider';
 
 @Module({
   imports: [
@@ -26,6 +28,10 @@ import { UsersModule } from '../users/users.module';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    { provide: OTP_PROVIDER, useClass: Msg91OtpProvider },
+  ],
 })
 export class AuthModule {}

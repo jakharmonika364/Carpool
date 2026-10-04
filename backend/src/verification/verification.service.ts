@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   Logger,
   NotFoundException,
@@ -24,8 +25,15 @@ import { SubmitDlVerificationDto } from './dto/submit-dl-verification.dto';
 import { SubmitRcVerificationDto } from './dto/submit-rc-verification.dto';
 import { SubmitAadhaarVerificationDto } from './dto/submit-aadhaar-verification.dto';
 import { isValidVerhoeff } from '../common/utils/verhoeff';
+import {
+  KYC_PROVIDER,
+  KycOutcome,
+  KycProvider,
+  KycProviderUnavailableError,
+} from './kyc/kyc-provider';
 
 const MINIMUM_DRIVER_AGE = 18;
+const DEV_STUB_REF = 'dev-mode-stub';
 
 // Order the required driver-onboarding steps are presented in (matches the
 // wizard's own numbering: Identity=1, DL=2, RC=3, Liveness=4) and the order
@@ -49,6 +57,7 @@ export class VerificationService {
     @InjectRepository(Vehicle)
     private readonly vehiclesRepository: Repository<Vehicle>,
     private readonly configService: ConfigService,
+    @Inject(KYC_PROVIDER) private readonly kycProvider: KycProvider,
   ) {}
 
   async getStatusForUser(userId: string): Promise<VerificationStatusDto> {
@@ -121,7 +130,7 @@ export class VerificationService {
     userId: string,
     dto: SubmitDlVerificationDto,
   ): Promise<VerificationStatusDto> {
-    this.assertDevVerificationAllowed();
+    this.assertVerificationAllowed();
 
     const user = await this.usersRepository.findOne({ where: { id: userId } });
     if (!user) {
@@ -130,18 +139,22 @@ export class VerificationService {
 
     this.assertMinimumAge(dto.dateOfBirth);
 
-    this.logger.log(
-      `[dev-verification] DL submitted for user ${userId} — no KYC provider call made; recording a stub "verified" outcome.`,
-    );
+    let outcome: KycOutcome;
+    if (this.kycProvider.isConfigured()) {
+      outcome = await this.callProvider(() =>
+        this.kycProvider.verifyDrivingLicence({
+          dlNumber: dto.dlNumber,
+          dateOfBirth: dto.dateOfBirth,
+        }),
+      );
+    } else {
+      this.logger.log(
+        `[dev-verification] DL submitted for user ${userId} — no KYC provider configured; recording a stub "verified" outcome.`,
+      );
+      outcome = { status: 'verified', providerRef: DEV_STUB_REF };
+    }
 
-    await this.verificationRecordsRepository.save(
-      this.verificationRecordsRepository.create({
-        userId,
-        type: VerificationRecordType.DL,
-        status: VerificationRecordStatus.VERIFIED,
-        providerRef: 'dev-mode-stub',
-      }),
-    );
+    await this.recordOutcome(userId, VerificationRecordType.DL, outcome);
 
     return this.getStatusForUser(userId);
   }
@@ -159,25 +172,33 @@ export class VerificationService {
     userId: string,
     dto: SubmitRcVerificationDto,
   ): Promise<VerificationStatusDto> {
-    this.assertDevVerificationAllowed();
+    this.assertVerificationAllowed();
 
     const user = await this.usersRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException('User not found.');
     }
 
-    this.logger.log(
-      `[dev-verification] RC submitted for user ${userId} — no transport-department lookup made; recording a stub "verified" outcome.`,
-    );
+    let outcome: KycOutcome;
+    if (this.kycProvider.isConfigured()) {
+      outcome = await this.callProvider(() =>
+        this.kycProvider.verifyVehicleRc({
+          registrationNumber: dto.registrationNumber,
+        }),
+      );
+    } else {
+      this.logger.log(
+        `[dev-verification] RC submitted for user ${userId} — no KYC provider configured; recording a stub "verified" outcome.`,
+      );
+      outcome = { status: 'verified', providerRef: DEV_STUB_REF };
+    }
 
-    await this.verificationRecordsRepository.save(
-      this.verificationRecordsRepository.create({
-        userId,
-        type: VerificationRecordType.RC,
-        status: VerificationRecordStatus.VERIFIED,
-        providerRef: 'dev-mode-stub',
-      }),
-    );
+    await this.recordOutcome(userId, VerificationRecordType.RC, outcome);
+
+    // Only a verified RC may create or update the driver's vehicle row.
+    if (outcome.status !== 'verified') {
+      return this.getStatusForUser(userId);
+    }
 
     const existingVehicle = await this.vehiclesRepository.findOne({
       where: { ownerId: userId },
@@ -295,12 +316,63 @@ export class VerificationService {
     }
   }
 
+  // Dev stubs (liveness, Aadhaar, and DL/RC when no provider credentials are
+  // set) must never run in production.
   private assertDevVerificationAllowed(): void {
     if (this.configService.get<string>('NODE_ENV') === 'production') {
       throw new ServiceUnavailableException(
         'DL verification is not configured. A real KYC provider must be wired up before this runs in production.',
       );
     }
+  }
+
+  // DL/RC: fine in production once a real provider is configured.
+  private assertVerificationAllowed(): void {
+    if (!this.kycProvider.isConfigured()) {
+      this.assertDevVerificationAllowed();
+    }
+  }
+
+  // A provider that can't give a real answer (timeout, bad credentials,
+  // IP not whitelisted, no balance, rate limit) must never turn into a pass
+  // or a rejection of the user's document (PRD 9.8): nothing is recorded, the
+  // task stays as it was, and the user is asked to retry.
+  private async callProvider(
+    call: () => Promise<KycOutcome>,
+  ): Promise<KycOutcome> {
+    try {
+      return await call();
+    } catch (error) {
+      if (error instanceof KycProviderUnavailableError) {
+        throw new ServiceUnavailableException(
+          'We could not complete verification right now. Please try again in a few minutes.',
+        );
+      }
+      throw error;
+    }
+  }
+
+  private async recordOutcome(
+    userId: string,
+    type: VerificationRecordType,
+    outcome: KycOutcome,
+  ): Promise<void> {
+    if (outcome.reason) {
+      this.logger.log(
+        `${type} verification for user ${userId} rejected: ${outcome.reason}.`,
+      );
+    }
+    await this.verificationRecordsRepository.save(
+      this.verificationRecordsRepository.create({
+        userId,
+        type,
+        status:
+          outcome.status === 'verified'
+            ? VerificationRecordStatus.VERIFIED
+            : VerificationRecordStatus.REJECTED,
+        providerRef: outcome.providerRef,
+      }),
+    );
   }
 
   private latestTaskFor(

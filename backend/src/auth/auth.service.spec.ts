@@ -36,6 +36,7 @@ describe('AuthService', () => {
       jwtService as any,
       redisService as unknown as RedisService,
       configService as any,
+      { isConfigured: () => false } as any,
     );
   });
 
