@@ -3,15 +3,11 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Path } from 'react-native-svg';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { colors } from '../../theme/colors';
-import type { AuthStackParamList } from '../../navigation/AuthNavigator';
 import { authService } from '../../services/authService';
 import { getApiErrorMessage } from '../../services/apiClient';
 import { useAuthStore } from '../../store/authStore';
 import type { DriverVerificationStatus, User } from '../../types/user';
-
-type Props = NativeStackScreenProps<AuthStackParamList, 'DriverVerified'>;
 
 function BigCheckIcon() {
   return (
@@ -77,7 +73,7 @@ function CarIcon() {
   );
 }
 
-export function DriverVerifiedScreen({ navigation }: Props) {
+export function DriverVerifiedScreen() {
   const hydrate = useAuthStore((state) => state.hydrate);
   const [user, setUser] = useState<User | null>(null);
   const [status, setStatus] = useState<DriverVerificationStatus | null>(null);
