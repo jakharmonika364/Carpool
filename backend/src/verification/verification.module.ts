@@ -6,6 +6,8 @@ import { VerificationRecord } from '../database/entities/verification-record.ent
 import { Vehicle } from '../database/entities/vehicle.entity';
 import { VerificationService } from './verification.service';
 import { VerificationController } from './verification.controller';
+import { KYC_PROVIDER } from './kyc/kyc-provider';
+import { CashfreeKycProvider } from './kyc/cashfree-kyc.provider';
 
 @Module({
   imports: [
@@ -13,6 +15,9 @@ import { VerificationController } from './verification.controller';
     PassportModule.register({ defaultStrategy: 'jwt' }),
   ],
   controllers: [VerificationController],
-  providers: [VerificationService],
+  providers: [
+    VerificationService,
+    { provide: KYC_PROVIDER, useClass: CashfreeKycProvider },
+  ],
 })
 export class VerificationModule {}
