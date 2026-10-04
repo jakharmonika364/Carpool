@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
+  Gender,
   UserRole,
   VerificationStatus,
 } from '../../database/entities/user.entity';
@@ -11,8 +12,17 @@ export class PublicUserDto {
   @ApiProperty()
   fullName: string;
 
-  @ApiProperty()
-  email: string;
+  @ApiProperty({ nullable: true })
+  firstName: string | null;
+
+  @ApiProperty({ nullable: true })
+  lastName: string | null;
+
+  @ApiProperty({ enum: Gender, nullable: true })
+  gender: Gender | null;
+
+  @ApiProperty({ nullable: true })
+  email: string | null;
 
   @ApiProperty()
   phoneNumber: string;

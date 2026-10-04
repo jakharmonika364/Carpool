@@ -19,6 +19,27 @@ export class UsersService {
     return this.usersRepository.findOne({ where: { id } });
   }
 
+  findByPhoneNumber(phoneNumber: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { phoneNumber } });
+  }
+
+  // Dev-mode phone/OTP signup: no password or email is collected up front,
+  // both stay null until the person sets those up separately (not built).
+  async findOrCreateByPhoneNumber(phoneNumber: string): Promise<User> {
+    const existing = await this.findByPhoneNumber(phoneNumber);
+    if (existing) {
+      return existing;
+    }
+
+    const user = this.usersRepository.create({
+      fullName: '',
+      phoneNumber,
+      email: null,
+      passwordHash: null,
+    });
+    return this.usersRepository.save(user);
+  }
+
   findByEmail(email: string): Promise<User | null> {
     return this.usersRepository
       .createQueryBuilder('user')
@@ -44,7 +65,27 @@ export class UsersService {
       }
     }
 
+    if (dto.email && dto.email !== user.email) {
+      const existing = await this.usersRepository.findOne({
+        where: { email: dto.email },
+      });
+      if (existing) {
+        throw new ConflictException(
+          'An account with this email address already exists.',
+        );
+      }
+    }
+
     Object.assign(user, dto);
+
+    // full_name stays the source of truth for existing call sites (auth
+    // responses, ride listings); keep it derived whenever either part changes.
+    if (dto.firstName || dto.lastName) {
+      user.fullName = [user.firstName, user.lastName]
+        .filter((part): part is string => Boolean(part))
+        .join(' ');
+    }
+
     return this.usersRepository.save(user);
   }
 }

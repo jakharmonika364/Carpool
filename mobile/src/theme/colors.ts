@@ -8,4 +8,6 @@ export const colors = {
   chipOffLabel: '#5C5C64',
   badgeBackground: '#332B55',
   badgeText: '#E4DFFF',
+  success: '#22C55E',
+  successBackground: 'rgba(34,197,94,0.15)',
 };

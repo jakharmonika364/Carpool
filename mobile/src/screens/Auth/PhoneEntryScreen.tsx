@@ -7,6 +7,8 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { BrandMark } from '../../components/BrandMark';
 import { colors } from '../../theme/colors';
 import type { AuthStackParamList } from '../../navigation/AuthNavigator';
+import { authService } from '../../services/authService';
+import { getApiErrorMessage } from '../../services/apiClient';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'PhoneEntry'>;
 type DeliveryMethod = 'sms' | 'whatsapp';
@@ -47,6 +49,8 @@ function WhatsAppIcon({ color }: { color: string }) {
 export function PhoneEntryScreen({ navigation }: Props) {
   const [phone, setPhone] = useState('');
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('sms');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const digits = useMemo(() => phone.replace(/\D/g, ''), [phone]);
   const isValid = PHONE_DIGITS_REGEX.test(digits);
@@ -54,6 +58,27 @@ export function PhoneEntryScreen({ navigation }: Props) {
   const handleChange = (text: string) => {
     const nextDigits = text.replace(/\D/g, '').slice(0, 10);
     setPhone(formatPhoneDigits(nextDigits));
+  };
+
+  const handleContinue = async () => {
+    if (!isValid || isSubmitting) return;
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      await authService.requestOtp({
+        phoneNumber: `${COUNTRY_CODE}${digits}`,
+        channel: deliveryMethod,
+      });
+      navigation.navigate('OtpVerification', {
+        countryCode: COUNTRY_CODE,
+        phone,
+        deliveryMethod,
+      });
+    } catch (err) {
+      setError(getApiErrorMessage(err));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -117,18 +142,14 @@ export function PhoneEntryScreen({ navigation }: Props) {
           </Pressable>
         </View>
 
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
         <Pressable
-          style={[styles.continueButton, !isValid && styles.continueButtonDisabled]}
-          disabled={!isValid}
-          onPress={() =>
-            navigation.navigate('OtpVerification', {
-              countryCode: COUNTRY_CODE,
-              phone,
-              deliveryMethod,
-            })
-          }
+          style={[styles.continueButton, (!isValid || isSubmitting) && styles.continueButtonDisabled]}
+          disabled={!isValid || isSubmitting}
+          onPress={handleContinue}
         >
-          <Text style={styles.continueLabel}>Continue</Text>
+          <Text style={styles.continueLabel}>{isSubmitting ? 'Sending…' : 'Continue'}</Text>
         </Pressable>
 
         <Text style={styles.terms}>
@@ -249,6 +270,11 @@ const styles = StyleSheet.create({
   },
   continueButtonDisabled: {
     opacity: 0.5,
+  },
+  errorText: {
+    marginTop: 16,
+    fontSize: 13,
+    color: '#F87171',
   },
   continueLabel: {
     color: colors.textPrimary,

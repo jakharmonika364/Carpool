@@ -5,6 +5,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { colors } from '../../theme/colors';
 import type { AuthStackParamList } from '../../navigation/AuthNavigator';
+import { authService } from '../../services/authService';
+import { getApiErrorMessage } from '../../services/apiClient';
+import { tokenStorage } from '../../utils/tokenStorage';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'OtpVerification'>;
 
@@ -18,6 +21,8 @@ export function OtpVerificationScreen({ navigation, route }: Props) {
   const [digits, setDigits] = useState<string[]>(Array(CODE_LENGTH).fill(''));
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const [secondsLeft, setSecondsLeft] = useState(RESEND_SECONDS);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const inputs = useRef<Array<TextInput | null>>([]);
 
   useEffect(() => {
@@ -47,6 +52,27 @@ export function OtpVerificationScreen({ navigation, route }: Props) {
 
   const handleResend = () => {
     setSecondsLeft(RESEND_SECONDS);
+  };
+
+  const handleVerify = async () => {
+    if (!isValid || isVerifying) return;
+    setIsVerifying(true);
+    setError(null);
+    try {
+      const { accessToken } = await authService.verifyOtp({
+        phoneNumber: `${countryCode}${phone.replace(/\D/g, '')}`,
+        code,
+      });
+      // Stored directly (not via useAuthStore) so `user` stays null and
+      // RootNavigator keeps showing the onboarding stack instead of jumping
+      // to the main app before role selection / profile setup are done.
+      await tokenStorage.setToken(accessToken);
+      navigation.navigate('RoleSelection', { countryCode, phone });
+    } catch (err) {
+      setError(getApiErrorMessage(err));
+    } finally {
+      setIsVerifying(false);
+    }
   };
 
   return (
@@ -97,12 +123,14 @@ export function OtpVerificationScreen({ navigation, route }: Props) {
           </Pressable>
         )}
 
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
         <Pressable
-          style={[styles.verifyButton, !isValid && styles.verifyButtonDisabled]}
-          disabled={!isValid}
-          onPress={() => navigation.navigate('RoleSelection')}
+          style={[styles.verifyButton, (!isValid || isVerifying) && styles.verifyButtonDisabled]}
+          disabled={!isValid || isVerifying}
+          onPress={handleVerify}
         >
-          <Text style={styles.verifyLabel}>Verify</Text>
+          <Text style={styles.verifyLabel}>{isVerifying ? 'Verifying…' : 'Verify'}</Text>
         </Pressable>
       </View>
     </SafeAreaView>
@@ -185,6 +213,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
     color: colors.orange,
+  },
+  errorText: {
+    marginTop: 16,
+    fontSize: 13,
+    textAlign: 'center',
+    color: '#F87171',
   },
   verifyButton: {
     marginTop: 24,

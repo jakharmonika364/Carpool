@@ -5,6 +5,8 @@ import { User } from './entities/user.entity';
 import { Vehicle } from './entities/vehicle.entity';
 import { Ride } from './entities/ride.entity';
 import { RideRequest } from './entities/ride-request.entity';
+import { VerificationRecord } from './entities/verification-record.entity';
+import { resolveDatabaseSsl } from './ssl';
 
 config();
 
@@ -12,7 +14,8 @@ config();
 export const AppDataSource = new DataSource({
   type: 'postgres',
   url: process.env.DATABASE_URL,
-  entities: [User, Vehicle, Ride, RideRequest],
+  ssl: resolveDatabaseSsl(process.env.DATABASE_URL, process.env.DB_SSL),
+  entities: [User, Vehicle, Ride, RideRequest, VerificationRecord],
   // Resolves to src/database/migrations/*.ts under ts-node and dist/database/migrations/*.js when compiled.
   migrations: [__dirname + '/migrations/*.{ts,js}'],
   synchronize: false,

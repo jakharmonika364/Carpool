@@ -16,6 +16,8 @@ import {
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
+import { RequestOtpDto } from './dto/request-otp.dto';
+import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { AuthResponseDto, PublicUserDto } from './dto/auth-response.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -38,6 +40,20 @@ export class AuthController {
   @ApiUnauthorizedResponse({ type: ErrorResponseDto })
   login(@Body() dto: LoginDto): Promise<AuthResponseDto> {
     return this.authService.login(dto);
+  }
+
+  @Post('otp/request')
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ description: 'Dev-mode: logs the request, sends nothing.' })
+  requestOtp(@Body() dto: RequestOtpDto): Promise<{ devMode: true }> {
+    return this.authService.requestOtp(dto);
+  }
+
+  @Post('otp/verify')
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: AuthResponseDto })
+  verifyOtp(@Body() dto: VerifyOtpDto): Promise<AuthResponseDto> {
+    return this.authService.verifyOtp(dto);
   }
 
   @Post('logout')

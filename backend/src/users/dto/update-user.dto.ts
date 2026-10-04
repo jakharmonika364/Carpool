@@ -1,11 +1,14 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  IsEmail,
+  IsEnum,
   IsOptional,
   IsString,
   Matches,
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { Gender } from '../../database/entities/user.entity';
 
 export class UpdateUserDto {
   @ApiPropertyOptional({ example: 'Student Name' })
@@ -14,6 +17,30 @@ export class UpdateUserDto {
   @MinLength(2)
   @MaxLength(120)
   fullName?: string;
+
+  @ApiPropertyOptional({ example: 'Alex' })
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(60)
+  firstName?: string;
+
+  @ApiPropertyOptional({ example: 'Mercer' })
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(60)
+  lastName?: string;
+
+  @ApiPropertyOptional({ example: 'alex.mercer@executive.io' })
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+
+  @ApiPropertyOptional({ enum: Gender })
+  @IsOptional()
+  @IsEnum(Gender)
+  gender?: Gender;
 
   @ApiPropertyOptional({ example: '+919000000001' })
   @IsOptional()

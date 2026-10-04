@@ -11,6 +11,7 @@ describe('AuthService', () => {
   let usersService: jest.Mocked<Pick<UsersService, 'findByEmail'>>;
   let jwtService: { sign: jest.Mock };
   let redisService: jest.Mocked<Pick<RedisService, 'set' | 'get'>>;
+  let configService: { get: jest.Mock };
 
   const baseUser = {
     id: 'user-1',
@@ -28,11 +29,13 @@ describe('AuthService', () => {
     };
     jwtService = { sign: jest.fn().mockReturnValue('signed.jwt.token') };
     redisService = { set: jest.fn(), get: jest.fn() };
+    configService = { get: jest.fn().mockReturnValue('development') };
 
     authService = new AuthService(
       usersService as unknown as UsersService,
       jwtService as any,
       redisService as unknown as RedisService,
+      configService as any,
     );
   });
 

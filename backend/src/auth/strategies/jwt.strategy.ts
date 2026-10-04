@@ -8,14 +8,14 @@ import { AUTH_BLACKLIST_PREFIX } from '../auth.constants';
 
 export interface JwtPayload {
   sub: string;
-  email: string;
+  email: string | null;
   jti: string;
   exp: number;
 }
 
 export interface AuthenticatedUser {
   id: string;
-  email: string;
+  email: string | null;
   jti: string;
   exp: number;
 }

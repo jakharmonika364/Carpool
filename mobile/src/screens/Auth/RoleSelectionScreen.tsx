@@ -91,8 +91,17 @@ function RadioIndicator({ selected }: { selected: boolean }) {
   return <View style={styles.radioUnselected} />;
 }
 
-export function RoleSelectionScreen({ navigation }: Props) {
+export function RoleSelectionScreen({ navigation, route }: Props) {
+  const { countryCode, phone } = route.params;
   const [selectedRole, setSelectedRole] = useState<Role>('drive');
+
+  const handleContinue = () => {
+    if (selectedRole === 'drive') {
+      navigation.navigate('DriverIdentity', { countryCode, phone });
+      return;
+    }
+    // Passenger ("Ride") onboarding isn't built yet — nothing to navigate to.
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -137,7 +146,7 @@ export function RoleSelectionScreen({ navigation }: Props) {
         </Pressable>
       </View>
 
-      <Pressable style={styles.continueButton}>
+      <Pressable style={styles.continueButton} onPress={handleContinue}>
         <Text style={styles.continueLabel}>CONTINUE</Text>
       </Pressable>
     </SafeAreaView>

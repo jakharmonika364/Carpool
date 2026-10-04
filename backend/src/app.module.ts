@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module';
 import { VehiclesModule } from './vehicles/vehicles.module';
 import { RidesModule } from './rides/rides.module';
 import { RideRequestsModule } from './ride-requests/ride-requests.module';
+import { VerificationModule } from './verification/verification.module';
 import { AppController } from './app.controller';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
@@ -22,6 +23,7 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
     VehiclesModule,
     RidesModule,
     RideRequestsModule,
+    VerificationModule,
   ],
   controllers: [AppController],
   providers: [
